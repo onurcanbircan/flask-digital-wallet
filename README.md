@@ -18,29 +18,10 @@ Proje sadece temel CRUD işlemlerini değil, finansal uygulamalarda kritik olan 
 
 ## 🛠️ Kullanılan Teknolojiler
 
-* **Backend:** Python 3.x, Flask (Modüler ve hafif RESTful mimari)
+* **Backend:** Python 3.12.7, Flask (Modüler ve hafif RESTful mimari)
 * **Frontend:** HTML5, Tailwind CSS (v4 - Standalone tarayıcı derleyicisi), Vanilla JavaScript (Async/Await & Fetch API)
 * **Veri Yönetimi:** Bellek içi (In-Memory) veri yapıları (`dict` ve `list`) ile yüksek hızlı veri işleme.
   > 🧠 *Mimari Not: Projenin bu aşamasında, sıfır konfigürasyonla (Zero-Setup) hemen çalıştırılabilmesi ve hızlı prototipleme adına veri modeli bellek üzerinde kurgulanmıştır. İş mantığı katmanı, veritabanı bağımsız çalışacak şekilde izole edilmiştir.*
-
----
-
-## 🚀 Kurulum ve Çalıştırma
-
-Proje, herhangi bir harici veritabanı veya Docker konfigürasyonu gerektirmediği için "Zero-Setup" mantığıyla doğrudan çalışmaya hazırdır.
-* **Projeyi Klonlayın:** git clone [https://github.com/onurcanbircan/flask-digital-wallet.git](https://github.com/onurcanbircan/flask-digital-wallet.git)
-cd flask-wallet-api
-
-* **Sanal Ortam Oluşturun & Bağımlılıkları Yükleyin (Önerilen):** # Sanal ortam oluşturma
-python -m venv venv
-source venv/bin/activate  # Linux/Mac için
-# venv\Scripts\activate  # Windows için
-
-# Flask yüklemesi
-pip install flask
-
-* **Uygulamayı Başlatın:** python main.py.
----
 
 ---
 ## 📂 Proje Yapısı
