@@ -33,6 +33,8 @@ Proje sadece temel CRUD işlemlerini değil, finansal uygulamalarda kritik olan 
 │   └── index.html       # Tailwind CSS ve asenkron JS entegrasyonlu yönetim paneli
 └── README.md            # Proje dökümantasyonu
 
+---
+
 ## 🚀 Kurulum ve Çalıştırma
 
 Proje, herhangi bir harici veritabanı veya Docker konfigürasyonu gerektirmediği için "Zero-Setup" mantığıyla doğrudan çalışmaya hazırdır.
