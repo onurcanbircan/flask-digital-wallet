@@ -25,20 +25,10 @@ Proje sadece temel CRUD işlemlerini değil, finansal uygulamalarda kritik olan 
 
 ---
 
-## 📂 Proje Yapısı
-
-```text
-├── main.py              # Flask backend sunucusu, validasyonlar ve API uç noktaları
-├── templates/
-│   └── index.html       # Tailwind CSS ve asenkron JS entegrasyonlu yönetim paneli
-└── README.md            # Proje dökümantasyonu
-
----
-
 ## 🚀 Kurulum ve Çalıştırma
 
 Proje, herhangi bir harici veritabanı veya Docker konfigürasyonu gerektirmediği için "Zero-Setup" mantığıyla doğrudan çalışmaya hazırdır.
-* **Projeyi Klonlayın:** git clone [https://github.com/kullaniciadi/flask-wallet-api.git](https://github.com/kullaniciadi/flask-wallet-api.git)
+* **Projeyi Klonlayın:** git clone [https://github.com/onurcanbircan/flask-digital-wallet.git](https://github.com/onurcanbircan/flask-digital-wallet.git)
 cd flask-wallet-api
 
 * **Sanal Ortam Oluşturun & Bağımlılıkları Yükleyin (Önerilen):** # Sanal ortam oluşturma
@@ -50,4 +40,15 @@ source venv/bin/activate  # Linux/Mac için
 pip install flask
 
 * **Uygulamayı Başlatın:** python main.py.
+---
+
+---
+## 📂 Proje Yapısı
+
+```text
+├── main.py              # Flask backend sunucusu, validasyonlar ve API uç noktaları
+├── templates/
+│   └── index.html       # Tailwind CSS ve asenkron JS entegrasyonlu yönetim paneli
+└── README.md            # Proje dökümantasyonu
+
 ---
