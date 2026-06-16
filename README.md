@@ -92,4 +92,40 @@ Unlike basic CRUD applications, this system enforces critical fintech business r
 │   └── wallet.db        # Automatically generated SQLite database file
 ├── templates/
 │   └── index.html       # SPA Dashboard powered by Tailwind CSS & Async Fetch UI
+├── requirements.txt     # Locked project dependencies
 └── README.md            # System documentation
+```
+---
+
+## ⚙️ Installation & Local Setup
+
+Follow these steps to run the Digital Wallet platform locally:
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/onurcanbircan/flask-digital-wallet.git](https://github.com/onurcanbircan/flask-digital-wallet.git)
+   cd flask-digital-wallet
+   ```
+2. **Create and activate a virtual environment:**
+```bash
+python -m venv venv
+```
+# On Windows:
+```bash
+venv\Scripts\activate
+```
+# On macOS/Linux:
+```bash
+source venv/bin/activate
+```
+---
+3. **Install dependencies:**
+```bash
+pip install Flask Flask-SQLAlchemy
+```
+4. **Run the application:**
+```bash
+python main.py
+```
+---
+The local SQLite database will be initialized automatically on the first boot. Open http://127.0.0.1:5000 in your browser to access the dashboard.
