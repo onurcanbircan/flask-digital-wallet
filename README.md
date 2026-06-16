@@ -92,5 +92,4 @@ Unlike basic CRUD applications, this system enforces critical fintech business r
 │   └── wallet.db        # Automatically generated SQLite database file
 ├── templates/
 │   └── index.html       # SPA Dashboard powered by Tailwind CSS & Async Fetch UI
-├── requirements.txt     # Locked project dependencies
 └── README.md            # System documentation
