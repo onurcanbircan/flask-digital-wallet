@@ -1,10 +1,56 @@
 from flask import Flask, request, jsonify, render_template
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 
-WALLETS = {}
-NEXT_ID = 1
-TRANSACTIONS = []
+# SQLite Veritabanı Yapılandırması
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///wallet.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Veritabanı nesnesini başlatıyoruz
+db = SQLAlchemy(app)
+
+
+# VERİTABANI MODELLERİ (TABLOLAR)
+class Wallet(db.Model):
+    __tablename__ = 'wallets'
+    id = db.Column(db.Integer, primary_key=True)
+    owner = db.Column(db.String(100), nullable=False)
+    balance = db.Column(db.Float, default=0.0, nullable=False)
+
+    def to_dict(self):
+        """Ön yüze JSON gönderirken kolaylık sağlaması için yardımcı metot"""
+        return {
+            "id": self.id,
+            "owner": self.owner,
+            "balance": self.balance
+        }
+
+class Transaction(db.Model):
+    __tablename__ = 'transactions'
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(20), nullable=False)  # 'deposit' veya 'transfer'
+    wallet_id = db.Column(db.Integer, nullable=True)  # Yükleme yapılan cüzdan
+    from_id = db.Column(db.Integer, nullable=True)    # Transferde gönderen cüzdan
+    to_id = db.Column(db.Integer, nullable=True)      # Transferde alıcı cüzdan
+    amount = db.Column(db.Float, nullable=False)
+
+    def to_dict(self):
+        """Ön yüzdeki JavaScript log yapısına tam uyum sağlaması için"""
+        data = {
+            "type": self.type,
+            "amount": self.amount
+        }
+
+        if self.type == "deposit":
+            data["wallet"] = self.wallet_id
+
+        elif self.type == "transfer":
+            data["from"] = self.from_id
+            data["to"] = self.to_id
+            
+        return data
+
 
 @app.get("/")
 def home():
@@ -13,62 +59,60 @@ def home():
 # 1. Tüm Cüzdanları Listele
 @app.get("/api/wallets")
 def list_wallets():
-    return jsonify(list(WALLETS.values())), 200
+    # Veritabanındaki tüm cüzdanları çekiyoruz
+    wallets = Wallet.query.all()
+    return jsonify([w.to_dict() for w in wallets]), 200
 
 # 2. Yeni Cüzdan Oluştur
 @app.post("/api/wallets")
 def create_wallet():
-    global NEXT_ID
-
     data = request.get_json(silent=True) or {}
     owner = (data.get("owner") or "").strip()
 
     if len(owner) < 2:
         return jsonify({"error": "owner en az 2 karakterden oluşmalıdır"}), 400
     
-    wallet = {
-        "id": NEXT_ID, 
-        "owner": owner, 
-        "balance": 0.0
-    }
+    # Yeni cüzdan nesnesi oluşturuluyor (ID'yi SQLite otomatik artıracak)
+    new_wallet = Wallet(owner=owner, balance=0.0)
     
-    WALLETS[NEXT_ID] = wallet
-    NEXT_ID += 1
+    db.session.add(new_wallet)
+    db.session.commit()
 
-    return jsonify(wallet), 201
+    return jsonify(new_wallet.to_dict()), 201
 
 # 3. ID ile Tek Bir Cüzdan Getir
 @app.get("/api/wallets/<int:wallet_id>")
 def get_wallet(wallet_id):
-    wallet = WALLETS.get(wallet_id)
+    wallet = Wallet.query.get(wallet_id)
 
     if not wallet:
         return jsonify({"error": "Wallet bulunamadı"}), 404
     
-    return jsonify(wallet), 200
+    return jsonify(wallet.to_dict()), 200
 
 # 4. Cüzdana Para Yükleme
 @app.post("/api/wallets/<int:wallet_id>/deposit")
 def deposit_to_wallet(wallet_id):
-    wallet = WALLETS.get(wallet_id)
+    wallet = Wallet.query.get(wallet_id)
     if not wallet:
         return jsonify({"error": "Wallet bulunamadı"}), 404
     
     data = request.get_json() or {}
     amount = data.get("amount")
 
-    # Geliştirme: Gelen değerin sayı olup olmadığını kontrol ediyoruz
     if amount is None or not isinstance(amount, (int, float)) or amount <= 0:
         return jsonify({"error": "Amount pozitif bir sayı olmalı"}), 400
     
-    wallet["balance"] = round(wallet["balance"] + amount, 2)
+    # Bakiyeyi güncelle
+    wallet.balance = round(wallet.balance + amount, 2)
     
-    TRANSACTIONS.append({
-        "type": "deposit",
-        "wallet": wallet_id,
-        "amount": amount
-    })
-    return jsonify(wallet), 200
+    # İşlem geçmişini (Log) veritabanına ekle
+    new_tx = Transaction(type="deposit", wallet_id=wallet_id, amount=amount)
+    db.session.add(new_tx)
+    
+    db.session.commit()
+    
+    return jsonify(wallet.to_dict()), 200
 
 # 5. İki Cüzdan Arası Para Transferi
 @app.post("/api/transfers")
@@ -79,8 +123,8 @@ def transfers():
     to_id = data.get("to_wallet")
     amount = data.get("amount")
 
-    from_wallet = WALLETS.get(from_id)
-    to_wallet = WALLETS.get(to_id)
+    from_wallet = Wallet.query.get(from_id)
+    to_wallet = Wallet.query.get(to_id)
 
     if not from_wallet or not to_wallet:
         return jsonify({"error": "Cüzdanlardan biri veya ikisi bulunamadı"}), 404
@@ -91,31 +135,34 @@ def transfers():
     if amount is None or not isinstance(amount, (int, float)) or amount <= 0:
         return jsonify({"error": "Amount pozitif bir sayı olmalı"}), 400
     
-    if from_wallet["balance"] < amount:
+    if from_wallet.balance < amount:
         return jsonify({"error": "Yetersiz bakiye"}), 400
     
     # Transfer işlemi ve bakiye güncelleme
-    from_wallet["balance"] = round(from_wallet["balance"] - amount, 2)
-    to_wallet["balance"] = round(to_wallet["balance"] + amount, 2)
+    from_wallet.balance = round(from_wallet.balance - amount, 2)
+    to_wallet.balance = round(to_wallet.balance + amount, 2)
 
-    TRANSACTIONS.append({
-         "type": "transfer",
-         "from": from_id,
-         "to": to_id,
-         "amount": amount
-    })
+    # Transfer logunu veritabanına ekle
+    new_tx = Transaction(type="transfer", from_id=from_id, to_id=to_id, amount=amount)
+    db.session.add(new_tx)
+    
+    db.session.commit()
 
     return jsonify({
          "message": "transfer başarılı",
-         "from_balance": from_wallet["balance"],
-         "to_balance": to_wallet["balance"]
+         "from_balance": from_wallet.balance,
+         "to_balance": to_wallet.balance
     }), 200
 
 # 6. İşlem Geçmişi
 @app.get("/api/transactions")
 def list_transactions():
-     return jsonify(TRANSACTIONS), 200
+     transactions = Transaction.query.all()
+     return jsonify([tx.to_dict() for tx in transactions]), 200
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        
     app.run(debug=True)
